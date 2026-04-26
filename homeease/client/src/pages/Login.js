@@ -1,0 +1,102 @@
+import { useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import Popup from "../components/Popup";
+
+function Login() {
+  const [formData, setFormData] = useState({ email: "", password: "" });
+
+  const [popup, setPopup] = useState({
+    show: false,
+    title: "",
+    message: "",
+    type: "success"
+  });
+
+  const navigate = useNavigate();
+
+  const closePopup = () => {
+    setPopup({ ...popup, show: false });
+
+    if (popup.type === "success") {
+      navigate("/services");
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        formData
+      );
+
+      localStorage.setItem("userInfo", JSON.stringify(response.data));
+
+      setPopup({
+        show: true,
+        title: "Login Successful",
+        message: "Welcome back to HomeEase!",
+        type: "success"
+      });
+    } catch (error) {
+      setPopup({
+        show: true,
+        title: "Login Failed",
+        message: "Please check your email and password.",
+        type: "error"
+      });
+    }
+  };
+
+  return (
+    <div className="container py-5">
+      <Popup
+        show={popup.show}
+        title={popup.title}
+        message={popup.message}
+        type={popup.type}
+        onClose={closePopup}
+      />
+
+      <div className="form-box mx-auto" style={{ maxWidth: "450px" }}>
+        <h2 className="page-title text-center mb-4">Login</h2>
+
+        <form onSubmit={handleSubmit}>
+          <input
+            className="form-control mb-3"
+            type="email"
+            name="email"
+            placeholder="Enter email"
+            value={formData.email}
+            onChange={handleChange}
+          />
+
+          <input
+            className="form-control mb-3"
+            type="password"
+            name="password"
+            placeholder="Enter password"
+            value={formData.password}
+            onChange={handleChange}
+          />
+
+          <button className="btn btn-primary w-100" type="submit">
+            Login
+          </button>
+        </form>
+
+        <p className="text-center mt-3">
+          New user? <Link to="/register">Register here</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default Login;
